@@ -11,6 +11,7 @@ import android.widget.Toast;
 import com.androidzeitgeist.ani.discovery.Discovery;
 import com.androidzeitgeist.ani.discovery.DiscoveryException;
 import com.androidzeitgeist.ani.discovery.DiscoveryListener;
+import com.androidzeitgeist.ani.transmitter.Transmitter;
 
 import java.net.InetAddress;
 
@@ -28,6 +29,7 @@ public class DiscoverBroadcastService extends Service implements DiscoveryListen
 
     protected static boolean isRunning = false;
     private Discovery mDiscovery;
+    private StableUdpIntent mSui;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -38,16 +40,24 @@ public class DiscoverBroadcastService extends Service implements DiscoveryListen
     public void onCreate() {
         Log.i(TAG, "onCreate");
         mDiscovery = new Discovery();
-        mDiscovery.setDisoveryListener(this);
-        try {
-
-            Log.i(TAG, "enabling discovery");
-            mDiscovery.enable();
-            isRunning = true;
-        } catch (DiscoveryException e) {
-            Toast.makeText(this, "Enable Discovery Failed!", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
+        //mDiscovery.setDisoveryListener(this);
+        mSui = new StableUdpIntent(mDiscovery, new Transmitter());
+        //try {
+        //
+        //    Log.i(TAG, "enabling discovery");
+        //    mDiscovery.enable();
+        //    isRunning = true;
+        //} catch (DiscoveryException e) {
+        //    Toast.makeText(this, "Enable Discovery Failed!", Toast.LENGTH_LONG).show();
+        //    e.printStackTrace();
+        //}
+        mSui.startListening(new StableUdpIntent.StableUdpIntentListener() {
+            @Override
+            public void onDiscovered(InetAddress address, Intent i) {
+                onIntentDiscovered(address, i);
+            }
+        });
+        isRunning = true;
     }
 
     @Override
